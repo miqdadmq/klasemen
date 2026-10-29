@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>[hidden]{display:none!important}</style>
+<title>Acak Pasangan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600&display=swap">
+<style>
+/* Layout: navy header band, setup panel (names, rounds, courts), round cards with score inputs, live standings table. */
+:root{
+  --bg:#f2f5fb; --surface:#ffffff; --surface2:#e8edf8; --fg:#0c1633; --muted:#586584; --line:#d6ddec;
+  --brand:#0b1f4b; --brand-fg:#ffffff; --brand-muted:#a9b8de;
+  --accent:#0a5cff; --accent-fg:#ffffff; --accent-soft:#e3ecff;
+  --win:#0e8f50; --win-bg:#dff4e8; --loss:#cf2f40; --loss-bg:#fde6e9;
+  --gold:#c99700; --silver:#7d889d; --bronze:#a8612f;
+  --font-display:"Barlow Condensed","Arial Narrow",Arial,sans-serif;
+  --font-body:"Barlow",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#060d20; --surface:#0e1a38; --surface2:#15244a; --fg:#e8edfa; --muted:#93a0c2; --line:#21315a;
+    --brand:#0a1a42; --brand-fg:#ffffff; --brand-muted:#9fb0dd;
+    --accent:#5c97ff; --accent-fg:#06112b; --accent-soft:#16295a;
+    --win:#3fdc98; --win-bg:#0f3a2d; --loss:#ff6f7e; --loss-bg:#3d1b26;
+    --gold:#f0bd22; --silver:#a9b3c7; --bronze:#d58650;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#060d20; --surface:#0e1a38; --surface2:#15244a; --fg:#e8edfa; --muted:#93a0c2; --line:#21315a;
+  --brand:#0a1a42; --brand-fg:#ffffff; --brand-muted:#9fb0dd;
+  --accent:#5c97ff; --accent-fg:#06112b; --accent-soft:#16295a;
+  --win:#3fdc98; --win-bg:#0f3a2d; --loss:#ff6f7e; --loss-bg:#3d1b26;
+  --gold:#f0bd22; --silver:#a9b3c7; --bronze:#d58650;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.45;margin:0}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.hero{background:var(--brand);color:var(--brand-fg);position:relative;overflow:hidden}
+.hero .wrap{padding-block:28px 26px;position:relative}
+.court{position:absolute;right:max(8px,env(safe-area-inset-right,0px));top:8px;width:150px;max-width:35%;opacity:.2;color:#fff}
+.nav{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px;position:relative;z-index:1}
+.nav a{font-family:var(--font-display);font-weight:700;font-size:15px;letter-spacing:.1em;text-transform:uppercase;color:var(--brand-muted);text-decoration:none;padding:6px 14px;border:1px solid rgba(255,255,255,.28);border-radius:999px}
+.nav a:hover{color:#fff;border-color:#fff}
+.nav a[aria-current="page"]{background:#fff;color:var(--brand);border-color:#fff}
+a.btn{text-decoration:none;display:inline-block}
+.eyebrow{font-family:var(--font-display);font-weight:600;letter-spacing:.14em;text-transform:uppercase;font-size:13px;color:var(--brand-muted);margin:0 0 4px}
+h1{font-family:var(--font-display);font-weight:800;font-size:clamp(38px,8vw,60px);line-height:.95;margin:0 0 10px;text-transform:uppercase;letter-spacing:.01em;text-wrap:balance}
+.lead{margin:0;color:var(--brand-muted);max-width:52ch}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+main{padding-block:22px 48px;display:grid;grid-template-columns:minmax(0,1fr);gap:26px}
+h2{font-family:var(--font-display);font-weight:700;font-size:24px;letter-spacing:.06em;text-transform:uppercase;margin:0}
+.sechead{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;margin-bottom:12px}
+
+.setup{background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:16px;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:18px}
+.field{display:grid;gap:6px;min-width:0;align-content:start}
+label,.lbl{font-family:var(--font-display);font-weight:700;font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+textarea,input[type=number],input[type=text],input[type=password],select{font:500 16px var(--font-body);color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:10px 12px;width:100%;min-width:0}
+textarea{min-height:150px;resize:vertical;line-height:1.5}
+textarea:focus,input:focus,select:focus{border-color:var(--accent)}
+.hint{font-size:13px;color:var(--muted);margin:0}
+.side-col{display:grid;gap:14px;align-content:start}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.info{font-size:14px;margin:0;padding:10px 12px;border-radius:4px;background:var(--accent-soft);color:var(--fg)}
+.info.err{background:var(--loss-bg);color:var(--loss);font-weight:600}
+.actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.btn{appearance:none;border:1px solid var(--line);background:var(--surface);color:var(--fg);font:600 14px var(--font-body);padding:10px 16px;border-radius:4px;cursor:pointer}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-family:var(--font-display);font-weight:700;font-size:18px;letter-spacing:.08em;text-transform:uppercase;padding:9px 20px}
+.btn.primary:hover{filter:brightness(1.08);color:var(--accent-fg)}
+.btn.warn{background:var(--loss);border-color:var(--loss);color:#fff}
+.note-ex{font-size:12.5px;font-weight:600;color:var(--accent)}
+.sesi{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));align-items:end}
+.sesi .info{grid-column:1/-1}
+.sync{font-size:13px;font-weight:600;color:var(--muted)}
+.sync.ok{color:var(--win)} .sync.bad{color:var(--loss)}
+input[readonly]{opacity:.8}
+button:disabled,textarea:disabled,input:disabled,select:disabled{opacity:.55;cursor:not-allowed}
+
+.rounds{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,330px),1fr));gap:14px}
+.rnd{background:var(--surface);border:1px solid var(--line);border-radius:6px;overflow:hidden;min-width:0}
+.rnd>header{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:2px 12px;background:var(--surface2);padding:8px 14px;font-family:var(--font-display);font-weight:700;font-size:16px;letter-spacing:.1em;text-transform:uppercase}
+.rnd>header .rest{font-weight:600;font-size:13px;color:var(--muted);letter-spacing:.06em}
+.match+.match{border-top:1px solid var(--line)}
+.ct{padding:6px 14px 0;font-family:var(--font-display);font-weight:600;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.vs{display:grid;grid-template-columns:1fr auto 1fr;align-items:stretch}
+.side{padding:12px 14px;min-width:0;display:grid;gap:6px;align-content:start}
+.side.b{text-align:right}
+.side .tm{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.side .pp{font-family:var(--font-display);font-weight:700;font-size:21px;text-transform:uppercase;line-height:1.1}
+.side .pp span{display:block;overflow-wrap:anywhere}
+.side.win{background:var(--win-bg)}
+.side input{font:800 28px var(--font-display);text-align:center;padding:4px 6px;width:100%;max-width:84px;font-variant-numeric:tabular-nums}
+.side.b input{justify-self:end}
+.side.win input{border-color:var(--win);color:var(--win)}
+.mid{display:grid;place-items:center;padding:0 2px;color:var(--muted);font-family:var(--font-display);font-weight:700;font-size:14px;letter-spacing:.1em}
+
+.tablebox{background:var(--surface);border:1px solid var(--line);border-radius:6px;overflow-x:auto}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:640px}
+thead th{background:var(--brand);color:var(--brand-fg);font-family:var(--font-display);font-weight:600;font-size:14px;letter-spacing:.08em;text-transform:uppercase;text-align:right;padding:12px;white-space:nowrap}
+thead th:first-child{text-align:left;padding-left:14px;position:sticky;left:0;z-index:2;background:var(--brand)}
+tbody td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums;font-size:16px;background:var(--surface)}
+tbody tr:last-child td{border-bottom:0}
+tbody td.pl{position:sticky;left:0;z-index:1;text-align:left;padding-left:14px;box-shadow:1px 0 0 var(--line)}
+.pcell{display:flex;align-items:center;gap:12px;min-width:160px}
+.rank{font-family:var(--font-display);font-weight:800;font-size:26px;width:28px;text-align:center;color:var(--muted)}
+.rank.g1{color:var(--gold)} .rank.g2{color:var(--silver)} .rank.g3{color:var(--bronze)}
+.av{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-family:var(--font-display);font-weight:800;font-size:18px;background:var(--brand);color:#fff;flex:none}
+.pname{font-family:var(--font-display);font-weight:700;font-size:21px;text-transform:uppercase;letter-spacing:.02em;line-height:1}
+td.w b{color:var(--win)} td.l b{color:var(--loss)}
+td.pts b{font-family:var(--font-display);font-size:22px;font-weight:700}
+.pos-d{color:var(--win);font-weight:600} .neg-d{color:var(--loss);font-weight:600}
+.legend{margin:10px 2px 0;color:var(--muted);font-size:13px}
+.empty{padding:22px 16px;color:var(--muted);text-align:center}
+
+@media (max-width:700px){
+  .setup{grid-template-columns:1fr}
+  .court{opacity:.12}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <svg class="court" viewBox="0 0 120 220" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <rect x="6" y="6" width="108" height="208"/>
+      <line x1="16" y1="6" x2="16" y2="214"/><line x1="104" y1="6" x2="104" y2="214"/>
+      <line x1="6" y1="110" x2="114" y2="110" stroke-width="4"/>
+      <line x1="6" y1="78" x2="114" y2="78"/><line x1="6" y1="142" x2="114" y2="142"/>
+      <line x1="60" y1="6" x2="60" y2="78"/><line x1="60" y1="142" x2="60" y2="214"/>
+    </svg>
+    <nav class="nav" aria-label="Menu utama"><a href="index.html" aria-current="page">Acak Pasangan</a><a href="klasemen.html">Klasemen</a></nav>
+    <p class="eyebrow">Ronde Putar</p>
+    <h1>Acak Pasangan</h1>
+    <p class="lead">Masukkan nama pemain. Pasangan dan lawan diacak tiap ronde supaya tidak berulang, lalu skor yang Anda isi langsung menjadi klasemen.</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section id="sesi" aria-labelledby="h-sesi" hidden>
+    <div class="sechead"><h2 id="h-sesi">Sesi</h2><span class="sync" id="syncStat" role="status" aria-live="polite"></span></div>
+    <div class="setup sesi">
+      <div class="field"><label for="code">Kode sesi</label><input id="code" type="text" maxlength="40" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="utama"></div>
+      <div class="field"><label for="pin">PIN pencatat</label><input id="pin" type="password" maxlength="20" autocomplete="off" placeholder="4–20 karakter"></div>
+      <div class="actions"><button class="btn primary" id="enter" type="button">Masuk</button><button class="btn" id="share" type="button">Salin link klasemen</button></div>
+      <p class="info" id="sesiInfo" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-setup">
+    <div class="sechead"><h2 id="h-setup">Pemain</h2><span class="note-ex" id="exNote" hidden>Nama contoh. Ganti dengan pemain Anda.</span></div>
+    <div class="setup">
+      <div class="field">
+        <label for="names">Nama pemain</label>
+        <textarea id="names" spellcheck="false" autocomplete="off"></textarea>
+        <p class="hint">Satu nama per baris, atau pisahkan dengan koma. Minimal 4, maksimal 16 pemain.</p>
+      </div>
+      <div class="side-col">
+        <div class="two">
+          <div class="field"><label for="rounds">Jumlah ronde</label><input id="rounds" type="number" inputmode="numeric" min="1" max="20" value="6"></div>
+          <div class="field"><label for="courts">Lapangan</label><select id="courts"></select></div>
+        </div>
+        <p class="info" id="info" role="status" aria-live="polite"></p>
+        <div class="actions">
+          <button class="btn primary" id="gen" type="button">Acak jadwal</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-sched">
+    <div class="sechead"><h2 id="h-sched">Jadwal &amp; Skor</h2><button class="btn" id="copy" type="button">Salin jadwal</button></div>
+    <div class="rounds" id="roundsBox"></div>
+  </section>
+
+  <section aria-labelledby="h-st">
+    <div class="sechead"><h2 id="h-st">Klasemen</h2><a class="btn" href="klasemen.html">Buka tampilan lengkap</a></div>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th scope="col">Pemain</th><th scope="col" title="Main">M</th><th scope="col">Menang</th><th scope="col">Kalah</th><th scope="col" title="Poin masuk">PM</th><th scope="col" title="Poin kebobolan">PK</th><th scope="col" title="Selisih poin">+/−</th><th scope="col" title="Persentase menang">%</th></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+    <p class="legend">Urutan: kemenangan, lalu total poin masuk, lalu selisih poin. Hanya ronde yang kedua skornya sudah diisi (dan tidak seri) yang dihitung. Skor satu tim berlaku untuk kedua pemainnya.</p>
+  </section>
+</main>
+
+<script src="config.js"></script>
+<script src="sync.js"></script>
+<script>
+var KEY="acak-pasangan-v1";
+var mode=Sync.enabled?"view":"local";
+function canEdit(){return mode==="local"||mode==="edit";}
+var DEFAULT_NAMES=["Arya","Miqdad","Icha","Ananto","Arifin","Endro"];
+var state={names:DEFAULT_NAMES.slice(),rounds:6,courts:1,schedule:[],example:true};
+
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function sgn(n){return n>0?"+"+n:(n<0?"−"+Math.abs(n):"0");}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}}
+function load(){
+  try{
+    var s=JSON.parse(localStorage.getItem(KEY));
+    if(s&&Array.isArray(s.names)&&Array.isArray(s.schedule)&&s.schedule.length){state=s;return true;}
+  }catch(e){}
+  return false;
+}
+
+/* ---------- Acak jadwal ---------- */
+function range(n){var a=[];for(var i=0;i<n;i++)a.push(i);return a;}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function pk(i,j){return i<j?i+"|"+j:j+"|"+i;}
+function v(o,k){return o[k]||0;}
+
+function generate(names,R,courts){
+  var N=names.length,P=courts*4,best=null,bestCost=Infinity;
+  for(var att=0;att<80;att++){
+    var par={},opp={},byes=[],last=[],i;
+    for(i=0;i<N;i++){byes[i]=0;last[i]=0;}
+    var rounds=[],cost=0;
+    for(var r=0;r<R;r++){
+      /* yang istirahat: paling sedikit istirahat, dan bukan yang istirahat di ronde lalu */
+      var order=shuffle(range(N)).sort(function(a,b){return (byes[a]-byes[b])||(last[a]-last[b]);});
+      var resters=order.slice(0,N-P),playing=order.slice(N-P);
+      var bestG=null,bestC=Infinity;
+      for(var t=0;t<120;t++){
+        var g=shuffle(playing.slice()),c=Math.random()*0.5;
+        for(var k=0;k<P;k+=4){
+          var a=g[k],b=g[k+1],x=g[k+2],y=g[k+3];
+          c+=v(par,pk(a,b))*100+v(par,pk(x,y))*100;
+          c+=(v(opp,pk(a,x))+v(opp,pk(a,y))+v(opp,pk(b,x))+v(opp,pk(b,y)))*10;
+        }
+        if(c<bestC){bestC=c;bestG=g;}
+      }
+      var matches=[];
+      for(var q=0;q<P;q+=4){
+        var A=bestG[q],B=bestG[q+1],X=bestG[q+2],Y=bestG[q+3];
+        par[pk(A,B)]=v(par,pk(A,B))+1;par[pk(X,Y)]=v(par,pk(X,Y))+1;
+        [[A,X],[A,Y],[B,X],[B,Y]].forEach(function(z){opp[pk(z[0],z[1])]=v(opp,pk(z[0],z[1]))+1;});
+        matches.push({a:[names[A],names[B]],b:[names[X],names[Y]],sa:null,sb:null});
+      }
+      for(i=0;i<N;i++)last[i]=0;
+      resters.forEach(function(z){byes[z]++;last[z]=1;});
+      cost+=bestC;
+      rounds.push({n:r+1,rest:resters.map(function(z){return names[z];}),matches:matches});
+    }
+    if(cost<bestCost){bestCost=cost;best=rounds;}
+    if(bestCost<1)break;
+  }
+  return best;
+}
+
+/* ---------- Input ---------- */
+function parseNames(text){
+  var seen={},out=[],dup=0;
+  text.split(/[\n,;]+/).forEach(function(s){
+    s=s.trim().replace(/\s+/g," ").slice(0,20);
+    if(!s)return;
+    var k=s.toLowerCase();
+    if(seen[k]){dup++;return;}
+    seen[k]=1;out.push(s);
+  });
+  return {names:out,dup:dup};
+}
+function maxCourts(n){return Math.max(1,Math.floor(n/4));}
+function syncCourts(n){
+  var sel=$("courts"),mc=maxCourts(n),cur=parseInt(sel.value,10)||state.courts||mc;
+  if(cur>mc)cur=mc;
+  var h="";
+  for(var i=1;i<=mc;i++)h+='<option value="'+i+'">'+i+(i===mc&&mc>1?" (maks)":"")+'</option>';
+  sel.innerHTML=h;sel.value=String(cur);sel.disabled=(mc===1);
+}
+function setInfo(text,err){var el=$("info");el.textContent=text;el.className="info"+(err?" err":"");}
+function refreshInfo(){
+  var p=parseNames($("names").value),n=p.names.length;
+  if(n<4){setInfo("Minimal 4 pemain untuk satu pertandingan ganda. Sekarang baru "+n+".",true);return p;}
+  if(n>16){setInfo("Maksimal 16 pemain. Sekarang "+n+".",true);return p;}
+  var c=parseInt($("courts").value,10)||1,play=c*4,rest=n-play;
+  var t=n+" pemain, "+c+" lapangan, "+play+" main per ronde";
+  t+=rest>0?", "+rest+" istirahat bergantian.":", semua main.";
+  if(p.dup)t+=" "+p.dup+" nama kembar diabaikan.";
+  setInfo(t,false);return p;
+}
+
+/* ---------- Render jadwal ---------- */
+function teamHTML(side,names,m,ri,mi){
+  var val=side==="a"?m.sa:m.sb;
+  var win=m.sa!=null&&m.sb!=null&&m.sa!==m.sb&&((side==="a")===(m.sa>m.sb));
+  return '<div class="side '+side+(win?" win":"")+'"><div class="tm">Tim '+side.toUpperCase()+'</div>'+
+    '<div class="pp">'+names.map(function(n){return '<span>'+esc(n)+'</span>';}).join("")+'</div>'+
+    '<input type="number" inputmode="numeric" min="0" max="99" id="s-'+ri+'-'+mi+'-'+side+'" data-r="'+ri+'" data-m="'+mi+'" data-s="'+side+'" aria-label="Skor Ronde '+(ri+1)+' Tim '+side.toUpperCase()+'" value="'+(val==null?"":val)+'"'+(canEdit()?"":" readonly")+'></div>';
+}
+function renderRounds(){
+  var multi=state.courts>1;
+  $("roundsBox").innerHTML=state.schedule.map(function(rd,ri){
+    var rest=rd.rest.length?'<span class="rest">Istirahat: '+rd.rest.map(esc).join(", ")+'</span>':'';
+    return '<article class="rnd"><header><span>Ronde '+rd.n+'</span>'+rest+'</header>'+
+      rd.matches.map(function(m,mi){
+        return '<div class="match" id="m-'+ri+'-'+mi+'">'+(multi?'<div class="ct">Lapangan '+(mi+1)+'</div>':'')+
+          '<div class="vs">'+teamHTML("a",m.a,m,ri,mi)+'<div class="mid">VS</div>'+teamHTML("b",m.b,m,ri,mi)+'</div></div>';
+      }).join("")+'</article>';
+  }).join("");
+}
+function updateWin(ri,mi){
+  var m=state.schedule[ri].matches[mi],el=$("m-"+ri+"-"+mi);if(!el)return;
+  var ok=m.sa!=null&&m.sb!=null&&m.sa!==m.sb;
+  el.querySelector(".side.a").classList.toggle("win",ok&&m.sa>m.sb);
+  el.querySelector(".side.b").classList.toggle("win",ok&&m.sb>m.sa);
+}
+
+/* ---------- Klasemen ---------- */
+function standings(){
+  var map={};
+  state.names.forEach(function(n){map[n]={name:n,m:0,w:0,l:0,pf:0,pa:0};});
+  state.schedule.forEach(function(rd){
+    rd.matches.forEach(function(m){
+      if(m.sa==null||m.sb==null||m.sa===m.sb)return;
+      [[m.a,m.sa,m.sb],[m.b,m.sb,m.sa]].forEach(function(t){
+        t[0].forEach(function(n){
+          var p=map[n];if(!p)return;
+          p.m++;p.pf+=t[1];p.pa+=t[2];
+          if(t[1]>t[2])p.w++;else p.l++;
+        });
+      });
+    });
+  });
+  var list=Object.keys(map).map(function(k){var p=map[k];p.diff=p.pf-p.pa;p.pct=p.m?Math.round(p.w/p.m*100):0;return p;});
+  list.sort(function(a,b){return (b.w-a.w)||(b.pf-a.pf)||(b.diff-a.diff)||a.name.localeCompare(b.name);});
+  return list;
+}
+function renderStandings(){
+  var list=standings(),any=list.some(function(p){return p.m>0;});
+  $("tbody").innerHTML=list.map(function(p,i){
+    var rk=any&&i<3?" g"+(i+1):"";
+    return '<tr><td class="pl"><div class="pcell"><span class="rank'+rk+'">'+(i+1)+'</span><span class="av">'+esc(p.name[0].toUpperCase())+'</span><span class="pname">'+esc(p.name)+'</span></div></td>'+
+      '<td>'+p.m+'</td><td class="w"><b>'+p.w+'</b></td><td class="l"><b>'+p.l+'</b></td>'+
+      '<td class="pts"><b>'+p.pf+'</b></td><td>'+p.pa+'</td>'+
+      '<td class="'+(p.diff>0?"pos-d":p.diff<0?"neg-d":"")+'">'+sgn(p.diff)+'</td><td>'+p.pct+'%</td></tr>';
+  }).join("");
+}
+
+/* ---------- Aksi ---------- */
+var armed=false,armTimer=null;
+function hasScores(){
+  return state.schedule.some(function(rd){return rd.matches.some(function(m){return m.sa!=null||m.sb!=null;});});
+}
+function disarm(){armed=false;clearTimeout(armTimer);var b=$("gen");b.textContent="Acak jadwal";b.classList.remove("warn");}
+function doGenerate(){
+  var p=refreshInfo(),n=p.names.length;
+  if(n<4||n>16)return;
+  var R=Math.max(1,Math.min(20,parseInt($("rounds").value,10)||6));
+  var c=Math.min(maxCourts(n),parseInt($("courts").value,10)||1);
+  $("rounds").value=R;
+  state={names:p.names,rounds:R,courts:c,schedule:generate(p.names,R,c),example:false};
+  $("exNote").hidden=true;
+  persist();renderRounds();renderStandings();
+}
+$("gen").addEventListener("click",function(){
+  if(hasScores()&&!armed){
+    armed=true;var b=$("gen");b.textContent="Yakin? Skor akan dihapus";b.classList.add("warn");
+    armTimer=setTimeout(disarm,4000);return;
+  }
+  disarm();doGenerate();
+});
+$("names").addEventListener("input",function(){
+  var p=refreshInfo();syncCourts(p.names.length);refreshInfo();
+});
+$("courts").addEventListener("change",refreshInfo);
+$("rounds").addEventListener("input",function(){});
+
+$("roundsBox").addEventListener("input",function(e){
+  var t=e.target;if(!t.matches||!t.matches("input[data-r]"))return;
+  var ri=+t.getAttribute("data-r"),mi=+t.getAttribute("data-m"),s=t.getAttribute("data-s");
+  var raw=t.value.trim(),val=raw===""?null:Math.max(0,Math.min(99,parseInt(raw,10)));
+  if(val!=null&&isNaN(val))val=null;
+  state.schedule[ri].matches[mi][s==="a"?"sa":"sb"]=val;
+  updateWin(ri,mi);renderStandings();persist();
+});
+
+function scheduleText(){
+  var lines=[];
+  state.schedule.forEach(function(rd){
+    lines.push("Ronde "+rd.n);
+    rd.matches.forEach(function(m,i){
+      lines.push((state.courts>1?"Lap. "+(i+1)+": ":"")+m.a.join(" & ")+" vs "+m.b.join(" & "));
+    });
+    if(rd.rest.length)lines.push("Istirahat: "+rd.rest.join(", "));
+    lines.push("");
+  });
+  return lines.join("\n").trim();
+}
+$("copy").addEventListener("click",function(){
+  var b=$("copy"),txt=scheduleText();
+  function done(msg){b.textContent=msg;setTimeout(function(){b.textContent="Salin jadwal";},1800);}
+  try{
+    navigator.clipboard.writeText(txt).then(function(){done("Tersalin");},function(){fallback();});
+  }catch(e){fallback();}
+  function fallback(){
+    var ta=document.createElement("textarea");ta.value=txt;ta.style.position="fixed";ta.style.opacity="0";
+    document.body.appendChild(ta);ta.select();
+    var ok=false;try{ok=document.execCommand("copy");}catch(e){}
+    document.body.removeChild(ta);done(ok?"Tersalin":"Gagal menyalin");
+  }
+});
+
+/* ---------- Sesi bersama (Supabase) ---------- */
+var pushTimer=null,stopWatch=null;
+function setSync(msg,cls){var el=$("syncStat");el.textContent=msg;el.className="sync"+(cls?" "+cls:"");}
+function sesiInfo(msg,err){var el=$("sesiInfo");el.textContent=msg;el.className="info"+(err?" err":"");}
+function persist(){save();if(Sync.enabled&&mode==="edit")push();}
+function push(){
+  clearTimeout(pushTimer);setSync("Menyimpan…");
+  pushTimer=setTimeout(function(){
+    var pin=Sync.getPin();
+    Sync.save(state,pin).then(function(){
+      setSync("Tersimpan","ok");
+      sesiInfo("Mode pencatat. Perubahan tersimpan otomatis dan terlihat oleh semua yang membuka sesi ini.");
+    }).catch(function(e){
+      if(/PIN salah/i.test(e.message)){
+        Sync.clearPin();setMode("view");setSync("Tidak tersimpan","bad");
+        sesiInfo("PIN salah. Sesi dibuka dalam mode lihat saja.",true);
+      }else{
+        setSync("Gagal menyimpan","bad");
+        sesiInfo(e.message==="Failed to fetch"?"Tidak bisa terhubung ke server. Periksa koneksi, lalu ubah skor sekali lagi untuk menyimpan ulang.":e.message,true);
+      }
+    });
+  },600);
+}
+function setMode(m){
+  mode=m;var ed=canEdit();
+  ["names","rounds","courts","gen"].forEach(function(id){$(id).disabled=!ed;});
+  if(ed){$("courts").disabled=(maxCourts(parseNames($("names").value).names.length)===1);}
+  renderRounds();
+  if(stopWatch){stopWatch();stopWatch=null;}
+  if(m==="view"){stopWatch=Sync.watch(function(row){if(row)applyRemote(row);},5000);}
+}
+function applyRemote(row){
+  var d=row.data;
+  if(!d||!Array.isArray(d.schedule)||!Array.isArray(d.names))return;
+  state=d;state.example=false;
+  $("names").value=state.names.join("\n");$("rounds").value=state.rounds;
+  syncCourts(state.names.length);$("courts").value=String(state.courts||1);
+  if(!canEdit())$("courts").disabled=true;
+  $("exNote").hidden=true;save();refreshInfo();renderRounds();renderStandings();
+}
+function updateLinks(){
+  document.querySelectorAll(".nav a, a.btn").forEach(function(a){
+    a.href=Sync.link(a.getAttribute("href").split("?")[0]);
+  });
+}
+function enterSession(){
+  var code=Sync.setCode($("code").value);$("code").value=code;updateLinks();
+  var pinIn=$("pin").value||Sync.getPin();
+  sesiInfo("Membuka sesi…");
+  Sync.load().then(function(row){
+    if(row){
+      applyRemote(row);
+      if(!pinIn){setMode("view");setSync("");sesiInfo("Mode lihat saja. Isi PIN pencatat lalu tekan Masuk untuk mengubah jadwal dan skor.");return;}
+      return Sync.check(pinIn).then(function(ok){
+        if(ok){
+          Sync.setPin(pinIn);setMode("edit");setSync("Tersimpan","ok");
+          sesiInfo("Mode pencatat. Perubahan tersimpan otomatis dan terlihat oleh semua yang membuka sesi ini.");
+        }else{
+          Sync.clearPin();setMode("view");setSync("");
+          sesiInfo("PIN salah. Sesi dibuka dalam mode lihat saja.",true);
+        }
+      });
+    }
+    if(pinIn.length<4||pinIn.length>20){
+      setMode("view");setSync("");
+      sesiInfo('Sesi "'+code+'" belum ada. Isi PIN 4–20 karakter lalu tekan Masuk untuk membuatnya.',true);return;
+    }
+    Sync.setPin(pinIn);setMode("edit");setSync("Belum tersimpan");
+    sesiInfo('Sesi baru "'+code+'". Atur pemain lalu tekan Acak jadwal untuk menyimpannya.');
+  }).catch(function(){
+    setMode("view");setSync("");
+    sesiInfo("Tidak bisa terhubung ke server. Periksa koneksi atau isi config.js.",true);
+  });
+}
+$("enter").addEventListener("click",enterSession);
+["code","pin"].forEach(function(id){$(id).addEventListener("keydown",function(e){if(e.key==="Enter")enterSession();});});
+$("share").addEventListener("click",function(){
+  var b=$("share"),url=new URL(Sync.link("klasemen.html"),location.href).href;
+  function done(msg){b.textContent=msg;setTimeout(function(){b.textContent="Salin link klasemen";},1800);}
+  function fallback(){
+    var ta=document.createElement("textarea");ta.value=url;ta.style.position="fixed";ta.style.opacity="0";
+    document.body.appendChild(ta);ta.select();
+    var ok=false;try{ok=document.execCommand("copy");}catch(e){}
+    document.body.removeChild(ta);done(ok?"Tersalin":"Gagal menyalin");
+  }
+  try{navigator.clipboard.writeText(url).then(function(){done("Tersalin");},fallback);}catch(e){fallback();}
+});
+
+/* ---------- Mulai ---------- */
+(function init(){
+  var restored=load();
+  $("names").value=state.names.join("\n");
+  $("rounds").value=state.rounds;
+  syncCourts(state.names.length);
+  $("courts").value=String(Math.min(state.courts||1,maxCourts(state.names.length)));
+  if(!restored||!state.schedule.length){
+    state.schedule=generate(state.names,state.rounds,Math.min(state.courts||1,maxCourts(state.names.length)));
+    state.example=true;
+  }
+  $("exNote").hidden=!state.example;
+  refreshInfo();renderRounds();renderStandings();
+})();
+if(Sync.enabled){
+  $("sesi").hidden=false;$("code").value=Sync.code();
+  updateLinks();enterSession();
+}
+</script>
+
+</body>
+</html>
